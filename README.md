@@ -1,3 +1,17 @@
+# Getting started
+
+Run the container with:
+
+```
+docker run --env-file license.env -v ./your-config.json:/home/config.json --net host -it mdrogalis/shadowtraffic:latest --config /home/config.json
+```
+
+Useful switches for development:
+
+- `--sample`: only produce N events and stop
+- `--watch`: restart every time the configuration file has changed
+- `--stdout`: ignore connections and send all events to standard out
+
 # Generators
 ## Scalar generators
 
