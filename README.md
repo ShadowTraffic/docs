@@ -79,10 +79,6 @@
 - `min` sets an inclusive ceiling.
 - `beforeOrEqualTo` is also supported.
 
-```json
-<< histogram and distributions?? >>
-```
-
 ### Duration generator
 
 ```json
@@ -574,62 +570,6 @@ Replace an entire value, usually a composite, with null.
 		}
 	    }
 	}
-    }
-}
-```
-
-### Repeat events
-
-Simulates malfunctioning producers sending events multiple times.
-
-```json
-{
-    "topic": "users",
-    "key": { "_gen": "string", "expr": "#{Internet.uuid}" },
-    "value": {
-	"name": { "_gen": "string", "expr": "#{Name.full_name}" }
-    },
-    "localConfigs": {
-	"repeat": {
-	    "rate": 0.01,
-	    "times": 2,
-	    "duration": 2000
-	}
-    }
-}
-```
-
-- Sends 1% of the events twice spaced at least 2000 ms apart.
-
-#### Variants
-
-```json
-{
-    "topic": "users",
-    "key": { "_gen": "string", "expr": "#{Internet.uuid}" },
-    "value": {
-        "name": { "_gen": "string", "expr": "#{Name.full_name}" }
-    },
-    "localConfigs": {
-        "repeat": {
-            "rate": {
-                "_gen": "histogram",
-                "bins": [
-                    { "bin": 0.01, "frequency": 9 },
-                    { "bin": 0.50, "frequency": 1 }
-                ]
-            },
-            "times": {
-                "_gen": "normalDistribution",
-                "mean": 2,
-                "sd": 1
-            },
-            "duration": {
-                "_gen": "normalDistribution",
-                "mean": 2000,
-                "sd": 100
-            }
-        }
     }
 }
 ```
