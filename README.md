@@ -12,6 +12,13 @@ Useful switches for development:
 - `--watch`: restart every time the configuration file has changed
 - `--stdout`: ignore connections and send all events to standard out
 
+
+## Configuration file
+
+The file supplied with `--config` needs two keys: `generators` and `connections`. You can also supply `globalConfigs`.
+
+The error messages should mostly be good enough to figure out what these data structures should look like.
+
 # Generators
 ## Scalar generators
 
@@ -28,18 +35,26 @@ Useful switches for development:
 
 ### Number generator
 
+Generates decimal numbers, presumably from a statistical generator.
+
 ```json
 {
     "_gen": "number",
-    "between": [5, 200],
-    "decimal": true
+    "n": { "_gen": "uniformDistribution", "bounds": [1, 5] }
 }
 ```
 
-- `between` generates between a range, inclusive both ends
-- `decimal` generates a floating point number
-- `min` sets an inclusive floor
-- `max` sets an inclusive ceiling
+### Integer generator
+
+Generates whole integers, presumably from a statistical generator.
+
+```json
+{
+    "_gen": "number",
+    "n": { "_gen": "normalDistribution", "mean": 20, "sd": 2 }
+}
+```
+
 ### Boolean generator
 
 ```json
@@ -58,60 +73,26 @@ Useful switches for development:
 }
 ```
 
-### Date generator
+### Date today generator
 
 ```json
 {
-    "_gen_": "date",
-    "between": ["2023-06-01", "2023-12-25"]
+    "_gen_": "dateToday"
 }
 ```
 
 - All dates are expressed in `yyyy-MM-dd` format.
-- `between` generates a date between a range, inclusive.
-#### Variants
+
+### Date Between generator
 
 ```json
 {
-    "_gen_": "date",
-    "after": "2023-06-01",
-    "max": "2023-12-01"
+    "_gen_": "dateBetween",
+    "between": ["2023-06-01", "2023-12-25"]
 }
 ```
 
-- `max` sets an inclusive ceiling.
-- `afterOrEqualTo` is also supported.
-
-```json
-{
-    "_gen_": "date",
-    "before": "2023-06-01",
-    "min": "2023-01-01"
-}
-```
-
-- `min` sets an inclusive ceiling.
-- `beforeOrEqualTo` is also supported.
-
-### Duration generator
-
-```json
-{
-    "_gen_": "duration",
-    "between": [1000, 4000]
-}
-```
-
-All durations are expressed in milliseconds.
-
-#### Variants
-- Same as `date`, supporting `after`, `before`, `min`, `max`, plus stat dists.
-
-### Datetime generator
-
-?
-
-Support for `now`.
+- Generated date is inclusive of both range rounds.
 
 ## Statistical generators
 
@@ -159,24 +140,6 @@ Support for `now`.
 
 - Randomly selects a choice using the given probabilities.
 
-#### Variants
-
-```json
-{
-    "_gen": "weightedOneOf",
-    "choices": [
-	{ "weight": 2,
-	  "value": {
-	      "_gen": "string", "expr": "#{Name.full_name}"
-	  }
-	},
-	{ "weight": 8, "value": "world" }
-    ]
-}
-```
-
-- Each choice can be another invocation to a generator.
-
 ### Normal distribution
 
 ```json
@@ -220,7 +183,7 @@ Support for `now`.
 }
 ```
 
-- Histogram for selecting a value over a continuous interval, most useful for controlling lookup frequency.
+- Histogram for selecting a value over a continuous interval, useful for controlling lookup frequency.
 - 20% of the population do 80% of the action.
 - Like a weighted choice, but for continuous data, not discrete.
 
@@ -239,6 +202,8 @@ Support for `now`.
 
 #### Variants
 
+- Explicitly specify the connection to look data up from. Useful if you're generating data for Kafka, but looking up data from Postgres.
+
 ```json
 {
     "_gen": "lookup",
@@ -247,6 +212,8 @@ Support for `now`.
     "column": "id"
 }
 ```
+
+- Use a `histogram` to control how the element is selected from the population.
 
 ```json
 {
@@ -263,7 +230,7 @@ Support for `now`.
 }
 ```
 
-- Use a `histogram` to control how the element is selected from the population.
+- Sometimes make a new key, sometimes use a previously generated one.
 
 ```json
 {
@@ -291,178 +258,13 @@ Support for `now`.
 }
 ```
 
-- Sometimes make a new key, sometimes use a previously generated one.
-
-## Transition generators
-
-### State machine generator
-
-```json
-{
-    "topic": "userActions",
-    "key": { "_gen": "string", "expr": "#{Internet.uuid}" },
-    "value": {
-	"action": {
-	    "_gen": "stateMachine",
-	    "for": [ "key" ],
-	    "initial": "login",
-	    "transitions": {
-		"login": ["sendMessage", "sendEmoji"],
-		"sendMessage": ["sendEmoji", "logout"],
-		"sendEmoji": ["sendMessage", "logout"]
-	    }
-	}
-    }
-}
-```
-
-- Generates varied actions for each user ID according the state machine.
-- By default, the transition names are the state names, so this example generates the strings `login`, `sendMessage`, etc.
-
-#### Variants
-
-```json
-{
-    "topic": "userActions",
-    "key": { "_gen": "string", "expr": "#{Internet.uuid}" },
-    "value": {
-	"actionCode": {
-	    "_gen": "stateMachine",
-	    "for": [ "key" ],
-	    "initial": "login",
-	    "transitions": {
-		"login": ["sendMessage", "sendEmoji"],
-		"sendMessage": ["sendEmoji", "logout"],
-		"sendEmoji": ["sendMessage", "logout"]
-	    },
-	    "states": {
-		"login": { "_gen": "number", "between": [1, 3] },
-		"sendMessage": { "_gen": "number", "between": [4, 6] },
-		"sendEmoji": { "_gen": "number", "between": [7, 8] },
-		"logout": { "_gen": "number", "between": [9, 10] }
-	    }
-	}
-    }
-}
-```
-
-- States can  be constants or generators.
-
-```json
-{
-    "topic": "userActions",
-    "key": { "_gen": "string", "expr": "#{Internet.uuid}" },
-    "value": {
-	"actionCode": {
-	    "_gen": "stateMachine",
-	    "for": [ "key" ],
-	    "initial": "login",
-	    "transitions": {
-		"login": {
-		    "_gen": "weightedOneOf",
-		    "choices": [
-			{ "weight": 2, "value": "sendMessage" },
-			{ "weight": 8, "value": "sendEmoji" },
-		    ]
-		},
-		"sendMessage": {
-		    "_gen": "weightedOneOf",
-		    "choices": [
-			{ "weight": 4, "value": "sendEmoji" },
-			{ "weight": 6, "value": "logout" },
-		    ]
-		},
-		"sendEmoji": {
-		    "_gen": "weightedOneOf",
-		    "choices": [
-			{ "weight": 7, "value": "sendMessage" },
-			{ "weight": 3, "value": "logout" },
-		    ]
-		}
-	    },
-	    "states": {
-		"login": { "_gen": "number", "between": [1, 3] },
-		"sendMessage": { "_gen": "number", "between": [4, 6] },
-		"sendEmoji": { "_gen": "number", "between": [7, 8] },
-		"logout": { "_gen": "number", "between": [9, 10] }
-	    }
-	}
-    }
-}
-```
-
-- Transitions can be weighted choices.
-
-```json
-{
-    "topic": "userActions",
-    "key": {
-	"_gen": "lookup",
-	"topic": "users",
-	"path": ["key", "id"]
-    },
-    "value": {
-	"actionId": {
-	    "_gen": "string",
-	    "expr": "#{Internet.uuid}"
-	}
-    },
-    "stateMachines": [
-	{
-	    "_gen": "stateMachine",
-	    "for": [ "key" ],
-	    "initial": "login",
-	    "transitions": {
-		"login": ["sendMessage", "sendEmoji"],
-		"sendMessage": ["sendEmoji", "logout"],
-		"sendEmoji": ["sendMessage", "logout"]
-	    },
-	    "states": {
-		"login": {
-		    "value": {
-			"action": "login",
-		    }
-		},
-		"sendMessage": {
-		    "value": {
-			"action": "sendMessage",
-			"message": {
-			    "_gen": "string",
-			    "expr": "#{Team.name}"
-			}
-		    }
-		},
-		"sendEmoji": {
-		    "value": {
-			"action": "sendEmoji",
-			"message": {
-			    "_gen": "oneOf",
-			    "choices": [
-				"👍", "👋", "🙂"
-			    ]
-			}
-		    }
-		},
-		"logout": {
-		    "value": {
-			"action": "logout"
-		    }
-		}
-	    }
-	}
-    ]
-}
-```
-
-- Top-level state machines merge their state values into the final event, in the order they are declared.
-
 # Configuration
 
 ## Scalar configs
 
 ### Null rates
 
-Applied to particular generator types.
+Applied to a generator.
 
 ```json
 {
@@ -545,7 +347,7 @@ Applied at the generator level.
 
 ### Null values
 
-Replace an entire value, usually a composite, with null.
+Kafka-specific. Replace an entire value, usually a composite, with null. 
 
 ```json
 {
@@ -565,6 +367,7 @@ Replace an entire value, usually a composite, with null.
 ```
 
 - Equivalent to a Kafka tombstone 5% of the time.
+
 #### Variants
 
 ```json
