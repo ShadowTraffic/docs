@@ -260,6 +260,44 @@ Generates whole integers, presumably from a statistical generator.
 
 # Configuration
 
+## Connection configs
+
+Connections are name -> connection details. Use the name in your generators when explicitly specifying a connection. This is useful so you can connect to multiple clusters of Postgres, or refer to a Postgres table name that is the same as a Kafka topic name.
+
+Example:
+```
+"connections": {
+        "pg": {
+            "kind": "postgres",
+            "connectionConfigs": {
+                "host": "localhost",
+                "port": 5432,
+                "username": "postgres",
+                "password": "postgres",
+                "db": "mydb"
+            }
+        }
+    }
+```
+
+### Postgres
+
+Required:
+- `connectionConfigs`, with `host`, `port`, `db`.
+- Optionally also with `username` and `password`
+
+### Kafka
+
+Required:
+- `producerConfigs`, with `bootstrap.servers`.
+- Optionally also with `key.serializer`, `value.serializer`
+
+### Webhook
+
+Required:
+- `httpConfigs`, with `url`
+- `dataShape`, one of `kafka`, `postgres`, to indicate whether you're day is defined in key/value or row.
+
 ## Scalar configs
 
 ### Null rates
