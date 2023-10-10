@@ -1,4 +1,4 @@
-b# Getting started
+# Getting started
 
 Run the container with:
 
@@ -331,6 +331,82 @@ Selects one or more keys from an object at random. Most useful combined with `pr
             }
         }
     ]
+}
+```
+
+## Transition generators
+
+### State Machine generator
+
+Generates data according to a set of states and transitions. Runs a state machine instance per unique `for` value, which is a path to value in the generated object (most usefully some identifier).
+
+```json
+{
+    "_gen": "stateMachine",
+    "initial": "a",
+    "for": [ "key" ]
+    "transitions": {
+        "a": "b",
+        "b": "c",
+        "c": "a"
+    },
+    "states": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    }
+}
+```
+
+#### Variants
+
+An optional top-level state machine may be defined for the generator. When present, the value of it's state is merged into the _entire_ generator output. This is useful when modeling change that affects many attributes, even including the output collection.
+
+```json
+{
+    "topic": "customers",
+    "key": {
+        "_gen": "number",
+        "n": {
+            "_gen": "uniformDistribution",
+            "bounds": [1, 10]
+        }
+    },
+    "value": {},
+    "stateMachine": {
+        "_gen": "stateMachine",
+        "for": [ "key" ],
+        "initial": "a",
+        "transitions": {
+            "a": "b",
+            "b": "c",
+            "c": "a"
+        },
+        "states": {
+            "a": {
+                "value": { "action": "start" }
+            },
+            "b": {
+                "value": { "action": "running" }
+            },
+            "c": {
+                "value": { "action": "stopped" }
+            },
+        }
+    }
+}
+```
+
+### PreviousEvent generator
+
+Obtains the last event generated for this state machine's `for` attribute. Can optionally drill into a subvalue using `path`.
+
+This generator may only be used within a state machine.
+
+```json
+{
+    "_gen": "previousEvent",
+    "path": [ "value", "payload", "after" ]
 }
 ```
 
