@@ -55,6 +55,16 @@ Generates whole integers, presumably from a statistical generator.
 }
 ```
 
+### SequentialInteger generator
+
+Generates integers sequentially, starting by default from 0.
+
+```json
+{
+    "_gen": "sequentialInteger",
+}
+```
+
 #### Variants
 
 ```json
