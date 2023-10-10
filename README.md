@@ -55,6 +55,15 @@ Generates whole integers, presumably from a statistical generator.
 }
 ```
 
+#### Variants
+
+```json
+{
+    "_gen": "sequentialInteger",
+    "startingFrom": 42
+}
+```
+
 ### Boolean generator
 
 ```json
@@ -254,6 +263,25 @@ Generates whole integers, presumably from a statistical generator.
 		}
 	    }
 	]
+    }
+}
+```
+
+### Var generator
+
+Look up a variable defined in the top-level vars section.
+
+```json
+{
+    "topic": "users",
+    "vars": {
+        "id": { "_gen" "uuid" }
+    },
+    "value": {
+        "userId": {
+            "_gen": "var",
+            "var": "id"
+        }
     }
 }
 ```
