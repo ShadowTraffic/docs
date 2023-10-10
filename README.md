@@ -1,4 +1,4 @@
-# Getting started
+b# Getting started
 
 Run the container with:
 
@@ -283,6 +283,54 @@ Look up a variable defined in the top-level vars section.
             "var": "id"
         }
     }
+}
+```
+
+## Transformation generators
+
+### Merge generator
+
+Merge a set of objects into one. Most useful combined with the `previousEvent` function to model an old event with some new attributes.
+
+```json
+{
+    "_gen": "merge",
+    "objects": [
+        {
+            "_gen": "previousEvent",
+            "path": [ "value", "payload", "after" ]
+        },
+        {
+            "_gen": "someKeys",
+            "object": {
+                "firstName": { "_gen": "string", "expr": "#{Name.first_name}" },
+                "lastName": { "_gen": "string", "expr": "#{Name.last_name}" },
+            }
+        }
+    ]
+}
+```
+
+### SomeKeys generator
+
+Selects one or more keys from an object at random. Most useful combined with `previousEvent` to model an old event with some randomly added changes.
+
+```json
+{
+    "_gen": "merge",
+    "objects": [
+        {
+            "_gen": "previousEvent",
+            "path": [ "value", "payload", "after" ]
+        },
+        {
+            "_gen": "someKeys",
+            "object": {
+                "firstName": { "_gen": "string", "expr": "#{Name.first_name}" },
+                "lastName": { "_gen": "string", "expr": "#{Name.last_name}" },
+            }
+        }
+    ]
 }
 ```
 
