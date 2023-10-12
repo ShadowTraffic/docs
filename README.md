@@ -255,7 +255,7 @@ Generates integers sequentially, starting by default from 0.
 {
     "topic": "users",
     "key": {
-	"_gen": "oneOf",
+	"_gen": "weightedOneOf",
 	"choices": [
 	    {
 		"weight": 8,
