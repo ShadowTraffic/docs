@@ -113,6 +113,16 @@ Generates integers sequentially, starting by default from 0.
 
 - Generated date is inclusive of both range rounds.
 
+### Now generator
+
+Generates datetime's for the current wallclock time, in the default pattern of `yyyy-MM-dd'T'HH:mm:ss.SSSZZ`. The format can be overridden with an optional `format` key. `format` must be a valid [JodaTime pattern](https://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html).
+
+```json
+{
+    "_gen": "now"
+}
+```
+
 ## Statistical generators
 
 ### oneOf
